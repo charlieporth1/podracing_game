@@ -22,13 +22,13 @@ async function onPageLoad() {
             .then(tracks => {
                 const html = renderTrackCards(tracks);
                 renderAt('#tracks', html)
-            });
+            }).catch((e)=> console.error(e));
 
         getRacers()
             .then((racers) => {
                 const html = renderRacerCars(racers);
                 renderAt('#racers', html)
-            })
+            }).catch((e)=> console.error(e))
     } catch (error) {
         console.log("Problem getting tracks and racers ::", error.message);
         console.error(error)
@@ -41,12 +41,12 @@ function setupClickHandlers() {
         if (target) {
             // Race track form field
             if (target.closest('.card.track')) {
-                await handleSelectTrack(target)
+                await handleSelectTrack(target).catch((e)=> console.error(e))
             }
 
             // Podracer form field
             if (target.closest('.card.podracer')) {
-                await handleSelectPodRacer(target)
+                await handleSelectPodRacer(target).catch((e)=> console.error(e))
             }
 
             // Submit create race form
@@ -59,7 +59,7 @@ function setupClickHandlers() {
 
             // Handle acceleration click
             if (target.closest('#gas-peddle')) {
-                await handleAccelerate(target)
+                await handleAccelerate(target).catch((e)=> console.error(e))
             }
         }
     }, false)
@@ -81,7 +81,6 @@ async function handleCreateRace() {
     // render starting UI
     let {player_id, track_id, race_id} = store;
     createRace(player_id, track_id).then(async (data) => {
-        console.log(data);
         race_id = data.ID - 1;
         const race = await getRace(race_id);
         await updateStore(store, {race_id});
@@ -89,7 +88,6 @@ async function handleCreateRace() {
         renderAt('#race', renderRaceStartView(data));
         if (!race_id)
             await updateStore(store, {race_id});
-        console.log("race_id", race_id);
         // The race has been created, now start the countdown
         // TODO - call the async function runCountdown
         await runCountdown().then().catch(e => console.error(e));
@@ -118,11 +116,10 @@ async function handleCreateRace() {
 
 function runRace(raceID) {
     return new Promise(async resolve => {
-        const res = await getRace(raceID);
-        console.log("res ", res)
+        const res = await getRace(raceID).catch((e)=> console.error(e));
         // TODO - use Javascript's built in setInterval method to get race info every 500ms
         const raceInterval = setInterval( async () => {
-            const res = (await getRace(raceID));
+            const res = (await getRace(raceID).catch((e)=> console.error(e)));
             renderAt('#leaderBoard', raceProgress(res.positions));
             if (res.status === 'finished') {
                 renderAt('#race', resultsView(res.positions));
@@ -150,7 +147,7 @@ function runRace(raceID) {
 async function runCountdown() {
     try {
         // wait for the DOM to load
-        await delay(1000);
+        await delay(1000).catch((e)=> console.error(e));
         let timer = 3;
 
         return new Promise(resolve => {
@@ -166,7 +163,7 @@ async function runCountdown() {
 
 
             }, 1000);
-        })
+        }).catch((e)=> console.error(e));
     } catch (error) {
         console.log(error);
     }
@@ -180,7 +177,7 @@ async function backgroundTask(data) {
         } else {
             throw Error("Not a function");
         }
-    });
+    }).catch((e)=> console.error(e));
 }
 
 //Replaces non number digits plus neg and decimal points
@@ -198,13 +195,13 @@ async function handleSelectPodRacer(target) {
         if (selected) {
             selected.classList.remove('selected');
         }
-    });
+    }).catch((e)=> console.error(e));
 
     // add class selected to current target
     target.classList.add('selected');
 
     const player_id = id;
-    await updateStore(store, {player_id})
+    await updateStore(store, {player_id}).catch((e)=> console.error(e));
 }
 
 async function handleSelectTrack(target) {
@@ -216,13 +213,13 @@ async function handleSelectTrack(target) {
         if (selected) {
             selected.classList.remove('selected')
         }
-    });
+    }).catch((e)=> console.error(e));
     // add class selected to current target
     target.classList.add('selected');
 
 
     const track_id = id;
-    await updateStore(store, {track_id})
+    await updateStore(store, {track_id}).catch((e)=> console.error(e));
 
 }
 
@@ -230,7 +227,7 @@ async function handleAccelerate() {
     console.log("accelerate button clicked");
     // TODO - Invoke the API call to accelerate
     // const race = await getRace(store.race_id);
-    await accelerate(store.race_id)
+    await accelerate(store.race_id).catch((e)=> console.error(e));
 
 }
 
@@ -258,10 +255,11 @@ function renderRacerCard(racer) {
 
     return `
 		<li class="card podracer" id="${id}">
-			<h3 id="${"a" + id}">${driver_name}</h3>
-			<p id="${"b" + id}">${top_speed}</p>
-			<p id="${"c" + id}">${acceleration}</p>
-			<p id="${"d" + id}">${handling}</p>
+			<h3 id="${"a" + id}">Driver: ${driver_name}</h3>
+			<p id="${"b" + id}">Top Speed: ${top_speed}</p>
+			<p id="${"c" + id}">Acceleration: ${acceleration}</p>
+			<p id="${"d" + id}">Handling: ${handling}</p>
+			</div>
 		</li>
 	`
 }
@@ -277,7 +275,7 @@ function renderTrackCards(tracks) {
 
     return `
 		<ul id="tracks">
-			${results}
+		     ${results}
 		</ul>
 	`
 }
@@ -348,7 +346,7 @@ function raceProgress(positions) {
 				</td>
 			</tr>
 		`
-    });
+    }).join('');
 
     return `
 		<main>
